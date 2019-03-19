@@ -5,7 +5,9 @@ import actions = require('@aws-cdk/aws-codepipeline-api');
 import cfn = require('@aws-cdk/aws-cloudformation');
 import iam = require('@aws-cdk/aws-iam');
 import cdk = require('@aws-cdk/cdk');
-import { CodePipelineSource } from '@aws-cdk/aws-codebuild';
+// import { CfnDHCPOptions } from '@aws-cdk/aws-ec2';
+// import { TestAction } from '@aws-cdk/aws-codepipeline-api';
+// import { CodePipelineSource } from '@aws-cdk/aws-codebuild';
 
 export interface GpayCfnPipelineProps {
     stackName: string;
@@ -57,9 +59,13 @@ export class GpayCfnPipeline extends cdk.Construct {
         // this.sourceAction = sourceAction;
 
         // Build
+        const buildStage = pipeline.addStage({
+            name: 'Build',
+          });
         const buildProject = new codebuild.Project(this, 'BuildProject', {
             source: new codebuild.GitHubSource({
-                cloneUrl: 'https://github.com/meloxl/gpay.git',
+                owner: 'meloxl',
+                repo: 'gpay',
                 oauthToken: githubAccessToken.value
             }),
             buildSpec: props.directory + '/buildspec.yml',
@@ -82,13 +88,13 @@ export class GpayCfnPipeline extends cdk.Construct {
             .addAllResources()
             .addAction('ec2:DescribeAvailabilityZones')
             .addAction('route53:ListHostedZonesByName'));
-        buildProject.addToRolePolicy(new iam.PolicyStatement()
-            .addAction('ssm:GetParameter')
-            .addResource(cdk.ArnUtils.fromComponents({
-                service: 'ssm',
-                resource: 'parameter',
-                resourceName: 'CertificateArn-*'
-            })));
+        // buildProject.addToRolePolicy(new iam.PolicyStatement()
+        //     .addAction('ssm:GetParameter')
+        //     .addResource(cdk.ArnUtils.fromComponents({
+        //         service: 'ssm',
+        //         resource: 'parameter',
+        //         resourceName: 'CertificateArn-*'
+        //     })));
         buildProject.addToRolePolicy(new iam.PolicyStatement()
             .addAllResources()
             .addActions("ecr:GetAuthorizationToken",
@@ -103,25 +109,41 @@ export class GpayCfnPipeline extends cdk.Construct {
                 "ecr:UploadLayerPart",
                 "ecr:CompleteLayerUpload",
                 "ecr:PutImage"));
-        buildProject.addToRolePolicy(new iam.PolicyStatement()
-            .addAction('cloudformation:DescribeStackResources')
-            .addResource(cdk.ArnUtils.fromComponents({
-                service: 'cloudformation',
-                resource: 'stack',
-                resourceName: 'Trivia*'
-            })));
+        // buildProject.addToRolePolicy(new iam.PolicyStatement()
+        //     .addAction('cloudformation:DescribeStackResources')
+        //     .addResource(cdk.ArnUtils.fromComponents({
+        //         service: 'cloudformation',
+        //         resource: 'stack',
+        //         resourceName: 'Trivia*'
+        //     })));
+        
 
-        const buildStage = pipeline.addStage('Build');
-        const buildAction = buildProject.addToPipeline(buildStage, 'CodeBuild');
+        const buildAction = new codebuild.PipelineBuildAction({
+            actionName: 'CodeBuild',
+            project: buildProject,
+            inputArtifact: sourceAction.outputArtifact,
+          });
+        buildStage.addAction(buildAction);
+
 
         // Test
-        // const testStage = pipeline.addStage('Test');
-        // const templatePrefix =  'TriviaGame' + props.templateName;
-        // const testStackName = 'TriviaGame' + props.stackName + 'Test';
-        // const changeSetName = 'StagedChangeSet';
+        const testdStage = pipeline.addStage({
+            name: 'Test',
+          });
+        const templatePrefix =  props.templateName;
+        const testStackName = props.stackName;
+        const changeSetName = 'StagedChangeSet';
 
-        // new cfn.PipelineCreateReplaceChangeSetAction(this, 'PrepareChangesTest', {
-        //     stage: testStage,
+        new cfn.PipelineCreateReplaceChangeSetAction({
+            stackName: testStackName,
+            changeSetName,
+            templatePath: buildAction.outputArtifact.atPath(templatePrefix + 'RDS.template.yaml'),
+            adminPermissions: true,
+            actionName: 'test',
+            runOrder: 2
+        });  
+
+        // new cfn.PipelineCreateReplaceChangeSetAction({
         //     stackName: testStackName,
         //     changeSetName,
         //     runOrder: 1,
@@ -129,12 +151,12 @@ export class GpayCfnPipeline extends cdk.Construct {
         //     templatePath: buildAction.outputArtifact.atPath(templatePrefix + 'Test.template.yaml'),
         // });
 
-        // new cfn.PipelineExecuteChangeSetAction(this, 'ExecuteChangesTest', {
-        //     stage: testStage,
-        //     stackName: testStackName,
-        //     changeSetName,
-        //     runOrder: 2
-        // });
+        new cfn.PipelineExecuteChangeSetAction({
+            actionName: 'test',
+            stackName: testStackName,
+            changeSetName,
+            runOrder: 2, 
+        });
 
         // Prod
         // const prodStage = pipeline.addStage('Prod');
@@ -155,5 +177,18 @@ export class GpayCfnPipeline extends cdk.Construct {
         //     changeSetName,
         //     runOrder: 2
         // });
+
+        // new codepipeline.Pipeline(this, 'pipeline', {
+        //     stages: [
+        //       {
+        //         name: 'Source',
+        //         actions: [sourceAction],
+        //       },
+        //       {
+        //         name: 'Build',
+        //         actions: [buildAction],
+        //       },
+        //     ],
+        //   });
     }
 }

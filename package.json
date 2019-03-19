@@ -15,6 +15,7 @@
     "aws-cdk": "^0.25.1"
   },
   "dependencies": {
+    "@aws-cdk/assert": "^0.25.3",
     "@aws-cdk/aws-codebuild": "^0.25.3",
     "@aws-cdk/aws-codepipeline": "^0.25.3",
     "@aws-cdk/cdk": "^0.25.1",
