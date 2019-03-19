@@ -1,0 +1,401 @@
+Resources:
+  GpayVpc7828BDDD:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      InstanceTenancy: default
+      Tags:
+        - Key: Name
+          Value: GpayinfraRDS/GpayVpc
+    Metadata:
+      aws:cdk:path: GpayinfraRDS/GpayVpc/Resource
+  GpayVpcPublicSubnet1Subnet5924DA03:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.0.0/26
+      VpcId:
+        Ref: GpayVpc7828BDDD
+      AvailabilityZone: us-east-1a
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: GpayinfraRDS/GpayVpc/PublicSubnet1
+        - Key: aws-cdk:subnet-name
+          Value: Public
+        - Key: aws-cdk:subnet-type
+          Value: Public
+    Metadata:
+      aws:cdk:path: GpayinfraRDS/GpayVpc/PublicSubnet1/Subnet
+  GpayVpcPublicSubnet1RouteTable6A3E09E6:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: GpayVpc7828BDDD
+      Tags:
+        - Key: Name
+          Value: GpayinfraRDS/GpayVpc/PublicSubnet1
+    Metadata:
+      aws:cdk:path: GpayinfraRDS/GpayVpc/PublicSubnet1/RouteTable
+  GpayVpcPublicSubnet1RouteTableAssociation69E7F6FF:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: GpayVpcPublicSubnet1RouteTable6A3E09E6
+      SubnetId:
+        Ref: GpayVpcPublicSubnet1Subnet5924DA03
+    Metadata:
+      aws:cdk:path: GpayinfraRDS/GpayVpc/PublicSubnet1/RouteTableAssociation
+  GpayVpcPublicSubnet1DefaultRoute99CFBFFD:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: GpayVpcPublicSubnet1RouteTable6A3E09E6
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Ref: GpayVpcIGW8E38C461
+    DependsOn:
+      - GpayVpcVPCGW1BF62328
+    Metadata:
+      aws:cdk:path: GpayinfraRDS/GpayVpc/PublicSubnet1/DefaultRoute
+  GpayVpcPublicSubnet1EIPC3C60EE1:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+    Metadata:
+      aws:cdk:path: GpayinfraRDS/GpayVpc/PublicSubnet1/EIP
+  GpayVpcPublicSubnet1NATGateway1162077B:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId:
+        Fn::GetAtt:
+          - GpayVpcPublicSubnet1EIPC3C60EE1
+          - AllocationId
+      SubnetId:
+        Ref: GpayVpcPublicSubnet1Subnet5924DA03
+      Tags:
+        - Key: Name
+          Value: GpayinfraRDS/GpayVpc/PublicSubnet1
+    Metadata:
+      aws:cdk:path: GpayinfraRDS/GpayVpc/PublicSubnet1/NATGateway
+  GpayVpcPublicSubnet2Subnet85697009:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.0.64/26
+      VpcId:
+        Ref: GpayVpc7828BDDD
+      AvailabilityZone: us-east-1b
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: GpayinfraRDS/GpayVpc/PublicSubnet2
+        - Key: aws-cdk:subnet-name
+          Value: Public
+        - Key: aws-cdk:subnet-type
+          Value: Public
+    Metadata:
+      aws:cdk:path: GpayinfraRDS/GpayVpc/PublicSubnet2/Subnet
+  GpayVpcPublicSubnet2RouteTableEE5CE982:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: GpayVpc7828BDDD
+      Tags:
+        - Key: Name
+          Value: GpayinfraRDS/GpayVpc/PublicSubnet2
+    Metadata:
+      aws:cdk:path: GpayinfraRDS/GpayVpc/PublicSubnet2/RouteTable
+  GpayVpcPublicSubnet2RouteTableAssociation4E15E449:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: GpayVpcPublicSubnet2RouteTableEE5CE982
+      SubnetId:
+        Ref: GpayVpcPublicSubnet2Subnet85697009
+    Metadata:
+      aws:cdk:path: GpayinfraRDS/GpayVpc/PublicSubnet2/RouteTableAssociation
+  GpayVpcPublicSubnet2DefaultRoute4C258D15:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: GpayVpcPublicSubnet2RouteTableEE5CE982
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Ref: GpayVpcIGW8E38C461
+    DependsOn:
+      - GpayVpcVPCGW1BF62328
+    Metadata:
+      aws:cdk:path: GpayinfraRDS/GpayVpc/PublicSubnet2/DefaultRoute
+  GpayVpcPublicSubnet2EIP85878A88:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+    Metadata:
+      aws:cdk:path: GpayinfraRDS/GpayVpc/PublicSubnet2/EIP
+  GpayVpcPublicSubnet2NATGateway5AB2FA16:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId:
+        Fn::GetAtt:
+          - GpayVpcPublicSubnet2EIP85878A88
+          - AllocationId
+      SubnetId:
+        Ref: GpayVpcPublicSubnet2Subnet85697009
+      Tags:
+        - Key: Name
+          Value: GpayinfraRDS/GpayVpc/PublicSubnet2
+    Metadata:
+      aws:cdk:path: GpayinfraRDS/GpayVpc/PublicSubnet2/NATGateway
+  GpayVpcDatabaseSubnet1SubnetF2A59724:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.0.128/27
+      VpcId:
+        Ref: GpayVpc7828BDDD
+      AvailabilityZone: us-east-1a
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: GpayinfraRDS/GpayVpc/DatabaseSubnet1
+        - Key: aws-cdk:subnet-name
+          Value: Database
+        - Key: aws-cdk:subnet-type
+          Value: Isolated
+    Metadata:
+      aws:cdk:path: GpayinfraRDS/GpayVpc/DatabaseSubnet1/Subnet
+  GpayVpcDatabaseSubnet1RouteTable3C59C16A:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: GpayVpc7828BDDD
+      Tags:
+        - Key: Name
+          Value: GpayinfraRDS/GpayVpc/DatabaseSubnet1
+    Metadata:
+      aws:cdk:path: GpayinfraRDS/GpayVpc/DatabaseSubnet1/RouteTable
+  GpayVpcDatabaseSubnet1RouteTableAssociation8C97B733:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: GpayVpcDatabaseSubnet1RouteTable3C59C16A
+      SubnetId:
+        Ref: GpayVpcDatabaseSubnet1SubnetF2A59724
+    Metadata:
+      aws:cdk:path: GpayinfraRDS/GpayVpc/DatabaseSubnet1/RouteTableAssociation
+  GpayVpcDatabaseSubnet2Subnet3E93AC1A:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.0.160/27
+      VpcId:
+        Ref: GpayVpc7828BDDD
+      AvailabilityZone: us-east-1b
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: GpayinfraRDS/GpayVpc/DatabaseSubnet2
+        - Key: aws-cdk:subnet-name
+          Value: Database
+        - Key: aws-cdk:subnet-type
+          Value: Isolated
+    Metadata:
+      aws:cdk:path: GpayinfraRDS/GpayVpc/DatabaseSubnet2/Subnet
+  GpayVpcDatabaseSubnet2RouteTable0D6D538E:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: GpayVpc7828BDDD
+      Tags:
+        - Key: Name
+          Value: GpayinfraRDS/GpayVpc/DatabaseSubnet2
+    Metadata:
+      aws:cdk:path: GpayinfraRDS/GpayVpc/DatabaseSubnet2/RouteTable
+  GpayVpcDatabaseSubnet2RouteTableAssociation5504B24E:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: GpayVpcDatabaseSubnet2RouteTable0D6D538E
+      SubnetId:
+        Ref: GpayVpcDatabaseSubnet2Subnet3E93AC1A
+    Metadata:
+      aws:cdk:path: GpayinfraRDS/GpayVpc/DatabaseSubnet2/RouteTableAssociation
+  GpayVpcApplicationSubnet1Subnet13C89AF5:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.64.0/18
+      VpcId:
+        Ref: GpayVpc7828BDDD
+      AvailabilityZone: us-east-1a
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: GpayinfraRDS/GpayVpc/ApplicationSubnet1
+        - Key: aws-cdk:subnet-name
+          Value: Application
+        - Key: aws-cdk:subnet-type
+          Value: Private
+    Metadata:
+      aws:cdk:path: GpayinfraRDS/GpayVpc/ApplicationSubnet1/Subnet
+  GpayVpcApplicationSubnet1RouteTableE4E93AF8:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: GpayVpc7828BDDD
+      Tags:
+        - Key: Name
+          Value: GpayinfraRDS/GpayVpc/ApplicationSubnet1
+    Metadata:
+      aws:cdk:path: GpayinfraRDS/GpayVpc/ApplicationSubnet1/RouteTable
+  GpayVpcApplicationSubnet1RouteTableAssociationADAF92E2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: GpayVpcApplicationSubnet1RouteTableE4E93AF8
+      SubnetId:
+        Ref: GpayVpcApplicationSubnet1Subnet13C89AF5
+    Metadata:
+      aws:cdk:path: GpayinfraRDS/GpayVpc/ApplicationSubnet1/RouteTableAssociation
+  GpayVpcApplicationSubnet1DefaultRoute83441515:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: GpayVpcApplicationSubnet1RouteTableE4E93AF8
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId:
+        Ref: GpayVpcPublicSubnet1NATGateway1162077B
+    Metadata:
+      aws:cdk:path: GpayinfraRDS/GpayVpc/ApplicationSubnet1/DefaultRoute
+  GpayVpcApplicationSubnet2SubnetB357C467:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.128.0/18
+      VpcId:
+        Ref: GpayVpc7828BDDD
+      AvailabilityZone: us-east-1b
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: GpayinfraRDS/GpayVpc/ApplicationSubnet2
+        - Key: aws-cdk:subnet-name
+          Value: Application
+        - Key: aws-cdk:subnet-type
+          Value: Private
+    Metadata:
+      aws:cdk:path: GpayinfraRDS/GpayVpc/ApplicationSubnet2/Subnet
+  GpayVpcApplicationSubnet2RouteTable1FA33C56:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: GpayVpc7828BDDD
+      Tags:
+        - Key: Name
+          Value: GpayinfraRDS/GpayVpc/ApplicationSubnet2
+    Metadata:
+      aws:cdk:path: GpayinfraRDS/GpayVpc/ApplicationSubnet2/RouteTable
+  GpayVpcApplicationSubnet2RouteTableAssociation609822F2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: GpayVpcApplicationSubnet2RouteTable1FA33C56
+      SubnetId:
+        Ref: GpayVpcApplicationSubnet2SubnetB357C467
+    Metadata:
+      aws:cdk:path: GpayinfraRDS/GpayVpc/ApplicationSubnet2/RouteTableAssociation
+  GpayVpcApplicationSubnet2DefaultRoute98A9344B:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId:
+        Ref: GpayVpcApplicationSubnet2RouteTable1FA33C56
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId:
+        Ref: GpayVpcPublicSubnet2NATGateway5AB2FA16
+    Metadata:
+      aws:cdk:path: GpayinfraRDS/GpayVpc/ApplicationSubnet2/DefaultRoute
+  GpayVpcIGW8E38C461:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: GpayinfraRDS/GpayVpc
+    Metadata:
+      aws:cdk:path: GpayinfraRDS/GpayVpc/IGW
+  GpayVpcVPCGW1BF62328:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId:
+        Ref: GpayVpc7828BDDD
+      InternetGatewayId:
+        Ref: GpayVpcIGW8E38C461
+    Metadata:
+      aws:cdk:path: GpayinfraRDS/GpayVpc/VPCGW
+  DatabaseSubnets56F17B9A:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnets for Database database
+      SubnetIds:
+        - Ref: GpayVpcPublicSubnet1Subnet5924DA03
+        - Ref: GpayVpcPublicSubnet2Subnet85697009
+    Metadata:
+      aws:cdk:path: GpayinfraRDS/Database/Subnets
+  DatabaseSecurityGroup5C91FDCB:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: RDS security group
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          Description: Allow all outbound traffic by default
+          IpProtocol: "-1"
+      SecurityGroupIngress: []
+      VpcId:
+        Ref: GpayVpc7828BDDD
+    Metadata:
+      aws:cdk:path: GpayinfraRDS/Database/SecurityGroup/Resource
+  DatabaseB269D8BB:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      Engine: aurora
+      DBSubnetGroupName:
+        Ref: DatabaseSubnets56F17B9A
+      MasterUsername: root
+      MasterUserPassword: Mobifun365
+      StorageEncrypted: false
+      VpcSecurityGroupIds:
+        - Fn::GetAtt:
+            - DatabaseSecurityGroup5C91FDCB
+            - GroupId
+    Metadata:
+      aws:cdk:path: GpayinfraRDS/Database/Resource
+  DatabaseInstance1844F58FD:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceClass: db.t2.small
+      DBClusterIdentifier:
+        Ref: DatabaseB269D8BB
+      DBSubnetGroupName:
+        Ref: DatabaseSubnets56F17B9A
+      Engine: aurora
+      PubliclyAccessible: true
+    DependsOn:
+      - GpayVpcPublicSubnet1DefaultRoute99CFBFFD
+      - GpayVpcPublicSubnet2DefaultRoute4C258D15
+    Metadata:
+      aws:cdk:path: GpayinfraRDS/Database/Instance1
+  DatabaseInstance2AA380DEE:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceClass: db.t2.small
+      DBClusterIdentifier:
+        Ref: DatabaseB269D8BB
+      DBSubnetGroupName:
+        Ref: DatabaseSubnets56F17B9A
+      Engine: aurora
+      PubliclyAccessible: true
+    DependsOn:
+      - GpayVpcPublicSubnet1DefaultRoute99CFBFFD
+      - GpayVpcPublicSubnet2DefaultRoute4C258D15
+    Metadata:
+      aws:cdk:path: GpayinfraRDS/Database/Instance2
+  CDKMetadata:
+    Type: AWS::CDK::Metadata
+    Properties:
+      Modules: aws-cdk=0.25.1,@aws-cdk/aws-cloudwatch=0.25.3,@aws-cdk/aws-ec2=0.25.3,@aws-cdk/aws-iam=0.25.3,@aws-cdk/aws-rds=0.25.3,@aws-cdk/cdk=0.25.3,@aws-cdk/cx-api=0.25.3,jsii-runtime=node.js/v9.5.0

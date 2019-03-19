@@ -7,7 +7,9 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
-    "cdk": "cdk"
+    "cdk": "cdk",
+    "synth-infra": "cdk synth -o build --app 'node vpc.js'",
+    "deploy-infra": "cdk deploy --app 'node vpc.js'"
   },
   "devDependencies": {
     "@types/node": "8.10.40",
@@ -15,8 +17,10 @@
     "aws-cdk": "^0.25.1"
   },
   "dependencies": {
+    "@aws-cdk/assert": "^0.25.3",
     "@aws-cdk/aws-codebuild": "^0.25.3",
     "@aws-cdk/aws-codepipeline": "^0.25.3",
+    "@aws-cdk/aws-rds": "^0.25.3",
     "@aws-cdk/cdk": "^0.25.1",
     "source-map-support": "^0.5.9"
   }
