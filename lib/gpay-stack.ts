@@ -9,8 +9,8 @@ export class GpayStack extends cdk.Stack {
     // The code that defines your stack goes here
     new GpayCfnPipeline(this, 'Pipeline', {
       pipelineName: 'infra',
-      stackName: 'GpayStack',
-      templateName: 'GpayInfra',
+      stackName: 'Infra',
+      templateName: 'Infra',
       directory: 'infra/cdk'
     });
   }

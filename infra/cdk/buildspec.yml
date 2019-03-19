@@ -11,6 +11,9 @@ phases:
     commands:
       - npm run build
       - npm run synth-infra
+      - pwd
+      - ls
+
 
 artifacts:
   files:
