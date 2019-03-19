@@ -15,6 +15,7 @@ phases:
       - ls build/*
       - cd build
       - ls
+      - pwd
 
 artifacts:
   files:
