@@ -12,7 +12,7 @@ phases:
       - npm run build
       - npm run synth-infra
       - pwd
-      - ls
+      - ls build/*
 
 
 artifacts:
