@@ -13,7 +13,8 @@ phases:
       - npm run synth-infra
       - pwd
       - ls build/*
-
+      - cd build
+      - ls
 
 artifacts:
   files:
