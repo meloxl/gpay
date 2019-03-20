@@ -19,15 +19,17 @@ class RDS extends cdk.Stack {
               subnetType: ec2.SubnetType.Public,
             },
             {
-              name: 'Application',
+              cidrMask: 20,
+              name: 'Private',
               subnetType: ec2.SubnetType.Private,
-            },
-            {
-              cidrMask: 27,
-              name: 'Database',
-              subnetType: ec2.SubnetType.Isolated,
             }
+            // {
+            //   cidrMask: 27,
+            //   name: 'Database',
+            //   subnetType: ec2.SubnetType.Isolated,
+            // }
         ],
+        natGateways: 1,
     });
 
     // new rds.DatabaseCluster(this, 'Database', {
