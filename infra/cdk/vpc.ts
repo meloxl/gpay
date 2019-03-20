@@ -48,6 +48,6 @@ class RDS extends cdk.Stack {
 
 const app = new cdk.App();
 
-new RDS(app, 'GpayinfraRDS');
+new RDS(app, 'GpayInfraRDS');
 
 app.run();
