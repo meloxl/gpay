@@ -14,7 +14,7 @@ export class RDS extends cdk.Stack {
         maxAZs: 2 ,
         subnetConfiguration: [
             {
-              cidrMask: 22,
+              cidrMask: 26,
               name: 'Public',
               subnetType: ec2.SubnetType.Public,
             },
@@ -42,7 +42,7 @@ export class RDS extends cdk.Stack {
         },
         port: 3306,
         defaultDatabaseName: 'gpay',
-        instances: 1
+        instances: 1,
     });
 
   }
