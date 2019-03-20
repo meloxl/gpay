@@ -135,15 +135,15 @@ export class GpayCfnPipeline extends cdk.Construct {
     //             resourceName: 'Gpay*'
     //     }, GpayStack))
     // );
-        
 
         const buildAction = new codebuild.PipelineBuildAction({
             actionName: 'CodeBuild',
             project: buildProject,
-            inputArtifact: sourceAction.outputArtifact,
+            inputArtifact: sourceAction.outputArtifact,   
+            
+            
           });
         buildStage.addAction(buildAction);
-
 
         // Test
         const testdStage = pipeline.addStage({
@@ -155,14 +155,14 @@ export class GpayCfnPipeline extends cdk.Construct {
         // const testStackName = props.stackName;
         const changeSetName = 'StagedChangeSet';
 
-        const CreateAction = new cfn.PipelineCreateReplaceChangeSetAction({
+        testdStage.addAction(new cfn.PipelineCreateReplaceChangeSetAction({
             stackName: testStackName,
             changeSetName,
             templatePath: buildAction.outputArtifact.atPath(templatePrefix + 'RDS.template.yaml'),
             adminPermissions: true,
-            actionName: 'test',
+            actionName: 'CreateReplaceChangeSetAction',
             runOrder: 1
-        });  
+        }));  
 
         // new cfn.PipelineCreateReplaceChangeSetAction({
         //     stackName: testStackName,
@@ -172,13 +172,13 @@ export class GpayCfnPipeline extends cdk.Construct {
         //     templatePath: buildAction.outputArtifact.atPath(templatePrefix + 'Test.template.yaml'),
         // });
 
-        new cfn.PipelineExecuteChangeSetAction({
-            actionName: 'test',
+        testdStage.addAction(new cfn.PipelineExecuteChangeSetAction({
+            actionName: 'ExecuteChangeSetAction',
             stackName: testStackName,
             changeSetName,
             runOrder: 2, 
-        });
-        testdStage.addAction(CreateAction);
+        }));
+        // testdStage.addAction(CreateAction);
         // testdStage.addAction(ExecuteAction);
 
         // Prod
