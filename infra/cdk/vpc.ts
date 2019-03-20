@@ -7,7 +7,9 @@ class RDS extends cdk.Stack {
   constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const vpc = new ec2.VpcNetwork(this, 'GpayVpc', { 
+    // const vpc = new ec2.VpcNetwork(this, 'GpayVpc', { 
+
+    new ec2.VpcNetwork(this, 'GpayVpc', { 
         cidr: "10.0.0.0/16", 
         maxAZs: 2 ,
         subnetConfiguration: [
@@ -28,20 +30,20 @@ class RDS extends cdk.Stack {
         ],
     });
 
-    new rds.DatabaseCluster(this, 'Database', {
-        engine: rds.DatabaseClusterEngine.Aurora,
-        masterUser: {
-            username: 'root',
-            password: 'Mobifun365',
-        },
-        instanceProps: {
-            instanceType: new ec2.InstanceTypePair(ec2.InstanceClass.Burstable2, ec2.InstanceSize.Small),
-            vpcPlacement: {
-                subnetsToUse: ec2.SubnetType.Public,
-            },
-            vpc
-        }
-    });
+    // new rds.DatabaseCluster(this, 'Database', {
+    //     engine: rds.DatabaseClusterEngine.Aurora,
+    //     masterUser: {
+    //         username: 'root',
+    //         password: 'Mobifun365',
+    //     },
+    //     instanceProps: {
+    //         instanceType: new ec2.InstanceTypePair(ec2.InstanceClass.Burstable2, ec2.InstanceSize.Small),
+    //         vpcPlacement: {
+    //             subnetsToUse: ec2.SubnetType.Public,
+    //         },
+    //         vpc
+    //     }
+    // });
 
   }
 }
