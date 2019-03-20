@@ -1,5 +1,5 @@
 import ec2 = require('@aws-cdk/aws-ec2');
-import rds = require('@aws-cdk/aws-rds')
+// import rds = require('@aws-cdk/aws-rds')
 // import { InstanceType } from '@aws-cdk/aws-ec2';
 import cdk = require('@aws-cdk/cdk');
 
