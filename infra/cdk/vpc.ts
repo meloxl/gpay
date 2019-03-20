@@ -14,7 +14,7 @@ export class RDS extends cdk.Stack {
         maxAZs: 2 ,
         subnetConfiguration: [
             {
-              cidrMask: 20,
+              cidrMask: 21,
               name: 'Public',
               subnetType: ec2.SubnetType.Public,
             },
