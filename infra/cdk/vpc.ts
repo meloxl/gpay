@@ -3,6 +3,11 @@ import rds = require('@aws-cdk/aws-rds')
 // import { InstanceType } from '@aws-cdk/aws-ec2';
 import cdk = require('@aws-cdk/cdk');
 
+// export interface ISecurityGroupRule {
+//   uniqueId: string;
+//   canInlineRule: boolean;
+// }
+
 export class RDS extends cdk.Stack {
   constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -26,6 +31,21 @@ export class RDS extends cdk.Stack {
         ],
         natGateways: 1,
     });
+
+    const exssh_sg = new ec2.SecurityGroup(this, 'gpay-external-ssh', {
+      vpc,
+      description: 'Allow ssh access to ec2 instances',
+      allowAllOutbound: true   // Can be set to false
+    });
+    exssh_sg.addIngressRule(new ec2.AnyIPv4(), new ec2.TcpPort(22), 'allow ssh access from the world');
+
+    // const inssh_sg = new ec2.SecurityGroup(this, 'gpay-external-ssh', {
+    //   vpc,
+    //   description: 'Allow ssh access to ec2 instances',
+    //   allowAllOutbound: true   // Can be set to false
+    // });
+
+    // inssh_sg.addIngressRule(, new ec2.TcpPort(22), 'allow ssh access from the world');
 
     new rds.DatabaseCluster(this, 'Database', {
         engine: rds.DatabaseClusterEngine.Aurora,
