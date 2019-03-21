@@ -32,16 +32,17 @@ export class RDS extends cdk.Stack {
         natGateways: 1,
     });
 
+    //  network sg (ssh elb)
     const exssh_sg = new ec2.SecurityGroup(this, 'gpay-external-ssh', {
       vpc,
-      description: 'Allow ssh access to ec2 instances',
+      description: 'Allow ssh access from the world',
       allowAllOutbound: true   // Can be set to false
     });
     exssh_sg.addIngressRule(new ec2.AnyIPv4(), new ec2.TcpPort(22), 'allow ssh access from the world');
 
     const inssh_sg = new ec2.SecurityGroup(this, 'gpay-internal-ssh', {
       vpc,
-      description: 'Allow ssh access to ec2 instances',
+      description: 'Allow ssh access from bastion',
       allowAllOutbound: true   // Can be set to false
     });
     inssh_sg.addIngressRule(exssh_sg, new ec2.TcpPort(22), 'allow ssh access from bastion',true);
@@ -60,6 +61,14 @@ export class RDS extends cdk.Stack {
     });
     inelb_sg.addIngressRule(new ec2.CidrIPv4('10.0.0.0/16'), new ec2.TcpPort(80), 'allows internal ELB traffic');    
 
+    //add new RDS sg
+    const rds_sg = new ec2.SecurityGroup(this, 'gpay-rds', {
+      vpc,
+      description: 'RDS security group',
+      allowAllOutbound: true   // Can be set to false
+    });
+    rds_sg.addIngressRule(new ec2.CidrIPv4('10.0.0.0/16'), new ec2.TcpPort(3306), 'RDS security group');   
+
     new rds.DatabaseCluster(this, 'Database', {
         engine: rds.DatabaseClusterEngine.Aurora,
         masterUser: {
@@ -71,6 +80,7 @@ export class RDS extends cdk.Stack {
             vpcPlacement: {
                 subnetsToUse: ec2.SubnetType.Private,
             },
+            securityGroup: ,
             vpc
         },
         port: 3306,
