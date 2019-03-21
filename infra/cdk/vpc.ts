@@ -38,15 +38,27 @@ export class RDS extends cdk.Stack {
       allowAllOutbound: true   // Can be set to false
     });
     exssh_sg.addIngressRule(new ec2.AnyIPv4(), new ec2.TcpPort(22), 'allow ssh access from the world');
-    exssh_sg.securityGroupId
 
     const inssh_sg = new ec2.SecurityGroup(this, 'gpay-internal-ssh', {
       vpc,
       description: 'Allow ssh access to ec2 instances',
       allowAllOutbound: true   // Can be set to false
     });
-
     inssh_sg.addIngressRule(exssh_sg, new ec2.TcpPort(22), 'allow ssh access from bastion',true);
+
+    const exelb_sg = new ec2.SecurityGroup(this, 'gpay-external-elb', {
+      vpc,
+      description: 'Allows external ELB traffic',
+      allowAllOutbound: true   // Can be set to false
+    });
+    exelb_sg.addIngressRule(new ec2.AnyIPv4(), new ec2.TcpPort(80), 'allows external ELB traffic');
+
+    const inelb_sg = new ec2.SecurityGroup(this, 'gpay-internal-elb', {
+      vpc,
+      description: 'Allows internal ELB traffic',
+      allowAllOutbound: true   // Can be set to false
+    });
+    inelb_sg.addIngressRule(new ec2.CidrIPv4('10.0.0.0/16'), new ec2.TcpPort(80), 'allows internal ELB traffic');    
 
     new rds.DatabaseCluster(this, 'Database', {
         engine: rds.DatabaseClusterEngine.Aurora,
