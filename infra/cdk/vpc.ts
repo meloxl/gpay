@@ -3,10 +3,6 @@ import rds = require('@aws-cdk/aws-rds')
 // import { InstanceType } from '@aws-cdk/aws-ec2';
 import cdk = require('@aws-cdk/cdk');
 
-// export interface ISecurityGroupRule {
-//   uniqueId: string;
-//   canInlineRule: boolean;
-// }
 
 export class RDS extends cdk.Stack {
   constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
@@ -62,7 +58,7 @@ export class RDS extends cdk.Stack {
     inelb_sg.addIngressRule(new ec2.CidrIPv4('10.0.0.0/16'), new ec2.TcpPort(80), 'allows internal ELB traffic');    
 
     //add new RDS sg
-    const rds_sg = new ec2.SecurityGroup(this, 'gpay-rds', {
+    const rds_sg = new ec2.SecurityGroup(this, 'gpayrds', {
       vpc,
       description: 'RDS security group',
       allowAllOutbound: true   // Can be set to false
@@ -80,13 +76,13 @@ export class RDS extends cdk.Stack {
             vpcPlacement: {
                 subnetsToUse: ec2.SubnetType.Private,
             },
-            securityGroup: ,
             vpc
         },
         port: 3306,
         defaultDatabaseName: 'gpay',
         instances: 1,
     });
+
 
   }
 }
