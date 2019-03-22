@@ -2,6 +2,7 @@ import ec2 = require('@aws-cdk/aws-ec2');
 import rds = require('@aws-cdk/aws-rds')
 // import { InstanceType } from '@aws-cdk/aws-ec2';
 import cdk = require('@aws-cdk/cdk');
+import elasticache = require('@aws-cdk/aws-elasticache');
 
 
 export class RDS extends cdk.Stack {
@@ -82,6 +83,36 @@ export class RDS extends cdk.Stack {
         defaultDatabaseName: 'gpay',
         instances: 1,
     });
+
+    // elasticache servers
+    new elasticache.CfnCacheCluster(this, 'GpayRedis',{
+      cacheNodeType: 'cache.t2.micro',
+      engine: 'redis',
+      numCacheNodes: 1,
+      clusterName: "GpayRedis",
+      engineVersion: "4.0.10",
+      autoMinorVersionUpgrade: false,
+      port: 6379,
+      vpcSecurityGroupIds: [
+          'sg-02baa918422ab1240'
+      ]
+
+
+  })
+
+    new elasticache.CfnParameterGroup(this , 'GpayRedis',{
+      cacheParameterGroupFamily: "redis4.0",
+      description: "gpay-prod-redis",
+    })
+
+    new elasticache.CfnSubnetGroup(this, 'GpayRedis',{
+      description: 'gpay-prod-redis',
+      subnetIds:[
+          "subnet-0d3b95b5f564e8783",
+          "subnet-02aa592a8a1a213ea"
+      ],
+      cacheSubnetGroupName: "gpay-prod-redis",
+    })
 
 
   }
