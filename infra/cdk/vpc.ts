@@ -85,6 +85,20 @@ export class RDS extends cdk.Stack {
     });
 
     // elasticache servers
+    const redissubnet = new elasticache.CfnSubnetGroup(this, 'redissug',{
+      description: 'gpay-prod-redis',
+      subnetIds:[
+          "subnet-0d3b95b5f564e8783",
+          "subnet-02aa592a8a1a213ea"
+      ],
+      cacheSubnetGroupName: "gpay-prod-redis",
+    })
+
+    const redispar = new elasticache.CfnParameterGroup(this , 'redispg',{
+      cacheParameterGroupFamily: "redis4.0",
+      description: "gpay-prod-redis",
+    })
+
     new elasticache.CfnCacheCluster(this, 'GpayRedis',{
       cacheNodeType: 'cache.t2.micro',
       engine: 'redis',
@@ -95,23 +109,15 @@ export class RDS extends cdk.Stack {
       port: 6379,
       vpcSecurityGroupIds: [
           'sg-02baa918422ab1240'
-      ]
+      ],
+      cacheSubnetGroupName: redissubnet.subnetGroupName,
+      cacheParameterGroupName: redispar.parameterGroupName
 
   })
 
-    new elasticache.CfnParameterGroup(this , 'redispg',{
-      cacheParameterGroupFamily: "redis4.0",
-      description: "gpay-prod-redis",
-    })
 
-    new elasticache.CfnSubnetGroup(this, 'redissug',{
-      description: 'gpay-prod-redis',
-      subnetIds:[
-          "subnet-0d3b95b5f564e8783",
-          "subnet-02aa592a8a1a213ea"
-      ],
-      cacheSubnetGroupName: "gpay-prod-redis",
-    })
+
+
   }
 }
 
