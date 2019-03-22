@@ -85,7 +85,7 @@ export class RDS extends cdk.Stack {
     });
 
     // elasticache servers
-    new elasticache.CfnCacheCluster(this, 'gpayredis',{
+    new elasticache.CfnCacheCluster(this, 'GpayRedis',{
       cacheNodeType: 'cache.t2.micro',
       engine: 'redis',
       numCacheNodes: 1,
@@ -99,12 +99,12 @@ export class RDS extends cdk.Stack {
 
   })
 
-    new elasticache.CfnParameterGroup(this , 'gpayredis',{
+    new elasticache.CfnParameterGroup(this , 'redispg',{
       cacheParameterGroupFamily: "redis4.0",
       description: "gpay-prod-redis",
     })
 
-    new elasticache.CfnSubnetGroup(this, 'gpayredis',{
+    new elasticache.CfnSubnetGroup(this, 'redissug',{
       description: 'gpay-prod-redis',
       subnetIds:[
           "subnet-0d3b95b5f564e8783",
