@@ -97,7 +97,6 @@ export class RDS extends cdk.Stack {
           'sg-02baa918422ab1240'
       ]
 
-
   })
 
     new elasticache.CfnParameterGroup(this , 'GpayRedis',{
@@ -113,8 +112,6 @@ export class RDS extends cdk.Stack {
       ],
       cacheSubnetGroupName: "gpay-prod-redis",
     })
-
-
   }
 }
 
