@@ -22,6 +22,8 @@
     "@aws-cdk/aws-elasticache": "^0.25.3",
     "@aws-cdk/aws-rds": "^0.25.3",
     "@aws-cdk/cdk": "^0.25.3",
+    "@aws-cdk/aws-events": "^0.25.3",
+    "@aws-cdk/aws-lambda": "^0.25.3",
     "source-map-support": "^0.5.9"
   }
 }
