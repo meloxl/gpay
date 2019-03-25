@@ -1,6 +1,5 @@
 import ec2 = require('@aws-cdk/aws-ec2');
 import rds = require('@aws-cdk/aws-rds');
-// import { InstanceType } from '@aws-cdk/aws-ec2';
 import cdk = require('@aws-cdk/cdk');
 import elasticache = require('@aws-cdk/aws-elasticache');
 
@@ -11,7 +10,6 @@ import fs = require('fs');
 interface GPAYStackProps extends cdk.StackProps {
   cacheNodeType: string;
   engine: string;
-  subnetIds: Array<string>;
 }
 
 export class RDS extends cdk.Stack {
@@ -21,8 +19,6 @@ export class RDS extends cdk.Stack {
   constructor(scope: cdk.App, id: string, props: GPAYStackProps) {
     super(scope, id, props);
 
-    // const vpc = new ec2.VpcNetwork(this, 'GpayVpc', { 
-      
       const vpc = new ec2.VpcNetwork(this, 'GpayVpc', { 
         cidr: "10.0.0.0/16", 
         maxAZs: 2 ,
@@ -159,7 +155,6 @@ const app = new cdk.App();
 new RDS(app, 'GpayInfraRDS', {
   cacheNodeType: "cache.t2.micro",
   engine: "redis",
-  subnetIds: [],
 });
 
 app.run();
