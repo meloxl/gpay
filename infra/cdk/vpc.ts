@@ -79,7 +79,7 @@ export class RDS extends cdk.Stack {
       defaultPortRange: new ec2.TcpPort(3306)
     }); 
 
-    new rds.DatabaseCluster(this, 'Database', {
+    new rds.DatabaseCluster(this,'Database', {
         engine: rds.DatabaseClusterEngine.Aurora,
         masterUser: {
             username: 'root',
@@ -117,7 +117,7 @@ export class RDS extends cdk.Stack {
       description: 'RDS security group',
       allowAllOutbound: true   // Can be set to false
     });
-    rds_sg.addIngressRule(new ec2.CidrIPv4('10.0.0.0/16'), new ec2.TcpPort(6379), 'RDS security group');   
+    redis_sg.addIngressRule(new ec2.CidrIPv4('10.0.0.0/16'), new ec2.TcpPort(6379), 'RDS security group');   
 
     new ec2.Connections({
       securityGroups: [redis_sg],
