@@ -8,12 +8,21 @@ import events = require('@aws-cdk/aws-events');
 import lambda = require('@aws-cdk/aws-lambda');
 import fs = require('fs');
 
+interface GPAYStackProps extends cdk.StackProps {
+  cacheNodeType: string;
+  engine: string;
+  subnetIds: Array<string>;
+}
+
 export class RDS extends cdk.Stack {
-  constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
+  // public readonly vpcprivateSubnets: ec2.;
+
+
+  constructor(scope: cdk.App, id: string, props: GPAYStackProps) {
     super(scope, id, props);
 
     // const vpc = new ec2.VpcNetwork(this, 'GpayVpc', { 
-
+      
       const vpc = new ec2.VpcNetwork(this, 'GpayVpc', { 
         cidr: "10.0.0.0/16", 
         maxAZs: 2 ,
@@ -87,13 +96,12 @@ export class RDS extends cdk.Stack {
         instances: 1,
     });
 
-    // elasticache servers
+    
     const redissubnet = new elasticache.CfnSubnetGroup(this, 'redissug',{
       description: 'gpay-prod-redis',
-      subnetIds:[
-          "subnet-0d3b95b5f564e8783",
-          "subnet-02aa592a8a1a213ea"
-      ],
+      subnetIds: vpc.privateSubnets.map(function(subnet) {
+        return subnet.subnetId;
+      }),
       cacheSubnetGroupName: "gpay-prod-redis",
     })
 
@@ -102,16 +110,24 @@ export class RDS extends cdk.Stack {
       description: "gpay-prod-redis",
     })
 
+    // The security group that defines network level access to the cluster
+    const redis_sg = new ec2.SecurityGroup(this, `redis_sg`, { vpc });
+
+    new ec2.Connections({
+      securityGroups: [redis_sg],
+      defaultPortRange: new ec2.TcpPort(6379)
+    });
+
     new elasticache.CfnCacheCluster(this, 'GpayRedis',{
-      cacheNodeType: 'cache.t2.micro',
-      engine: 'redis',
+      cacheNodeType: props.cacheNodeType ,     //'cache.t2.micro',
+      engine: props.engine ,      //'redis',
       numCacheNodes: 1,
       clusterName: "gpayredis",
       engineVersion: "4.0.10",
       autoMinorVersionUpgrade: false,
       port: 6379,
       vpcSecurityGroupIds: [
-          'sg-02baa918422ab1240'
+          redis_sg.securityGroupId
       ],
       cacheSubnetGroupName: redissubnet.subnetGroupName,
       cacheParameterGroupName: redispar.parameterGroupName
@@ -140,6 +156,10 @@ export class RDS extends cdk.Stack {
 
 const app = new cdk.App();
 
-new RDS(app, 'GpayInfraRDS');
+new RDS(app, 'GpayInfraRDS', {
+  cacheNodeType: "cache.t2.micro",
+  engine: "redis",
+  subnetIds: [],
+});
 
 app.run();
