@@ -166,10 +166,10 @@ export class RDS extends cdk.Stack {
     });
 
     // Add capacity to it
-    cluster.addCapacity('Capacity', {
-      instanceType: new ec2.InstanceType("t2.small"),
-      desiredCapacity: 1,
-    });
+    // cluster.addCapacity('Capacity', {
+    //   instanceType: new ec2.InstanceType("t2.small"),
+    //   desiredCapacity: 1,
+    // });
 
     // Or add customized capacity. Be sure to start the Amazon ECS-optimized AMI.
     const autoScalingGroup = new autoscaling.AutoScalingGroup(this, 'ASG', {

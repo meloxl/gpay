@@ -90,13 +90,9 @@ export class GpayCfnPipeline extends cdk.Construct {
             .addAllResources()
             .addAction('ec2:DescribeAvailabilityZones')
             .addAction('route53:ListHostedZonesByName'));
-        // buildProject.addToRolePolicy(new iam.PolicyStatement()
-        //     .addAction('ssm:GetParameter')
-        //     .addResource(cdk.ArnUtils.fromComponents({
-        //         service: 'ssm',
-        //         resource: 'parameter',
-        //         resourceName: 'CertificateArn-*'
-        //     })));
+        buildProject.addToRolePolicy(new iam.PolicyStatement()
+            .addAction('ssm:GetParameter')
+            .addAllResources());
         buildProject.addToRolePolicy(new iam.PolicyStatement()
             .addAllResources()
             .addActions("ecr:GetAuthorizationToken",
