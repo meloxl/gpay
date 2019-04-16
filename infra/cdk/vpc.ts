@@ -160,8 +160,9 @@ export class RDS extends cdk.Stack {
 //   rule.addTarget(lambdaFn);
 
     // ecs cluter
-    new ecs.Cluster(this, 'Cluster', {
+    const cluster = new ecs.Cluster(this, 'Cluster', {
       vpc: vpc
+      // clusterName:
     });
 
     // Or add customized capacity. Be sure to start the Amazon ECS-optimized AMI.
@@ -180,6 +181,9 @@ export class RDS extends cdk.Stack {
       maxCapacity: 2,
       // ... other options here ...
     });
+
+    cluster.addAutoScalingGroup(autoScalingGroup);
+
 
     const workerUtilizationMetric = new cloudwatch.Metric({
       namespace: 'MyService',
