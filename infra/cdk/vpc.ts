@@ -1,15 +1,15 @@
 import ec2 = require('@aws-cdk/aws-ec2');
-import rds = require('@aws-cdk/aws-rds');
+// import rds = require('@aws-cdk/aws-rds');
 import cdk = require('@aws-cdk/cdk');
-import elasticache = require('@aws-cdk/aws-elasticache');
+// import elasticache = require('@aws-cdk/aws-elasticache');
 import ecs = require("@aws-cdk/aws-ecs");
 import autoscaling = require("@aws-cdk/aws-autoscaling");
 import { EcsOptimizedAmi } from '@aws-cdk/aws-ecs';
 import cloudwatch = require("@aws-cdk/aws-cloudwatch");
 
-import events = require('@aws-cdk/aws-events');
-import lambda = require('@aws-cdk/aws-lambda');
-import fs = require('fs');
+// import events = require('@aws-cdk/aws-events');
+// import lambda = require('@aws-cdk/aws-lambda');
+// import fs = require('fs');
 
 interface GPAYStackProps extends cdk.StackProps {
   cacheNodeType: string;
@@ -70,94 +70,94 @@ export class RDS extends cdk.Stack {
     });
     inelb_sg.addIngressRule(new ec2.CidrIPv4('10.0.0.0/16'), new ec2.TcpPort(80), 'allows internal ELB traffic');    
 
-    //add new RDS sg
-    const rds_sg = new ec2.SecurityGroup(this, 'gpayrds', {
-      vpc,
-      description: 'RDS security group',
-      allowAllOutbound: true   // Can be set to false
-    });
-    rds_sg.addIngressRule(new ec2.CidrIPv4('10.0.0.0/16'), new ec2.TcpPort(3306), 'RDS security group'); 
+    // //add new RDS sg
+    // const rds_sg = new ec2.SecurityGroup(this, 'gpayrds', {
+    //   vpc,
+    //   description: 'RDS security group',
+    //   allowAllOutbound: true   // Can be set to false
+    // });
+    // rds_sg.addIngressRule(new ec2.CidrIPv4('10.0.0.0/16'), new ec2.TcpPort(3306), 'RDS security group'); 
 
-    new ec2.Connections({
-      securityGroups: [rds_sg],
-      defaultPortRange: new ec2.TcpPort(3306)
-    }); 
+    // new ec2.Connections({
+    //   securityGroups: [rds_sg],
+    //   defaultPortRange: new ec2.TcpPort(3306)
+    // }); 
 
-    new rds.DatabaseCluster(this,'Database', {
-        engine: rds.DatabaseClusterEngine.Aurora,
-        masterUser: {
-            username: 'root',
-            password: 'Mobifun365',
-        },
-        instanceProps: {
-            instanceType: new ec2.InstanceTypePair(ec2.InstanceClass.Burstable2, ec2.InstanceSize.Small),
-            vpcPlacement: {
-                subnetsToUse: ec2.SubnetType.Private,
-            },
-            vpc
-        },
-        port: 3306,
-        defaultDatabaseName: 'gpay',
-        instances: 1,
-    });
+    // new rds.DatabaseCluster(this,'Database', {
+    //     engine: rds.DatabaseClusterEngine.Aurora,
+    //     masterUser: {
+    //         username: 'root',
+    //         password: 'Mobifun365',
+    //     },
+    //     instanceProps: {
+    //         instanceType: new ec2.InstanceTypePair(ec2.InstanceClass.Burstable2, ec2.InstanceSize.Small),
+    //         vpcPlacement: {
+    //             subnetsToUse: ec2.SubnetType.Private,
+    //         },
+    //         vpc
+    //     },
+    //     port: 3306,
+    //     defaultDatabaseName: 'gpay',
+    //     instances: 1,
+    // });
 
     
-    const redissubnet = new elasticache.CfnSubnetGroup(this, 'redissug',{
-      description: 'gpay-prod-redis',
-      subnetIds: vpc.privateSubnets.map(function(subnet) {
-        return subnet.subnetId;
-      }),
-      cacheSubnetGroupName: "gpay-prod-redis",
-    })
+    // const redissubnet = new elasticache.CfnSubnetGroup(this, 'redissug',{
+    //   description: 'gpay-prod-redis',
+    //   subnetIds: vpc.privateSubnets.map(function(subnet) {
+    //     return subnet.subnetId;
+    //   }),
+    //   cacheSubnetGroupName: "gpay-prod-redis",
+    // })
 
-    const redispar = new elasticache.CfnParameterGroup(this , 'redispg',{
-      cacheParameterGroupFamily: "redis4.0",
-      description: "gpay-prod-redis",
-    })
+    // const redispar = new elasticache.CfnParameterGroup(this , 'redispg',{
+    //   cacheParameterGroupFamily: "redis4.0",
+    //   description: "gpay-prod-redis",
+    // })
 
-    // The security group that defines network level access to the cluster
-    const redis_sg = new ec2.SecurityGroup(this, 'redis_sg', {
-      vpc,
-      description: 'RDS security group',
-      allowAllOutbound: true   // Can be set to false
-    });
-    redis_sg.addIngressRule(new ec2.CidrIPv4('10.0.0.0/16'), new ec2.TcpPort(6379), 'RDS security group');   
+  //   // The security group that defines network level access to the cluster
+  //   const redis_sg = new ec2.SecurityGroup(this, 'redis_sg', {
+  //     vpc,
+  //     description: 'RDS security group',
+  //     allowAllOutbound: true   // Can be set to false
+  //   });
+  //   redis_sg.addIngressRule(new ec2.CidrIPv4('10.0.0.0/16'), new ec2.TcpPort(6379), 'RDS security group');   
 
-    new ec2.Connections({
-      securityGroups: [redis_sg],
-      defaultPortRange: new ec2.TcpPort(6379)
-    });
+  //   new ec2.Connections({
+  //     securityGroups: [redis_sg],
+  //     defaultPortRange: new ec2.TcpPort(6379)
+  //   });
 
-    new elasticache.CfnCacheCluster(this, 'GpayRedis',{
-      cacheNodeType: props.cacheNodeType ,     //'cache.t2.micro',
-      engine: props.engine ,      //'redis',
-      numCacheNodes: 1,
-      clusterName: "gpayredis",
-      engineVersion: "4.0.10",
-      autoMinorVersionUpgrade: false,
-      port: 6379,
-      vpcSecurityGroupIds: [
-          redis_sg.securityGroupId
-      ],
-      cacheSubnetGroupName: redissubnet.subnetGroupName,
-      cacheParameterGroupName: redispar.parameterGroupName
+  //   new elasticache.CfnCacheCluster(this, 'GpayRedis',{
+  //     cacheNodeType: props.cacheNodeType ,     //'cache.t2.micro',
+  //     engine: props.engine ,      //'redis',
+  //     numCacheNodes: 1,
+  //     clusterName: "gpayredis",
+  //     engineVersion: "4.0.10",
+  //     autoMinorVersionUpgrade: false,
+  //     port: 6379,
+  //     vpcSecurityGroupIds: [
+  //         redis_sg.securityGroupId
+  //     ],
+  //     cacheSubnetGroupName: redissubnet.subnetGroupName,
+  //     cacheParameterGroupName: redispar.parameterGroupName
 
-  })
+  // })
 
-// cron lambda
-  const lambdaFn = new lambda.Function(this, 'Singleton', {
-    code: new lambda.InlineCode(fs.readFileSync('lambda-handler.py', { encoding: 'utf-8' })),
-    handler: 'index.main',
-    timeout: 300,
-    runtime: lambda.Runtime.Python27,
-  });
+// // cron lambda
+//   const lambdaFn = new lambda.Function(this, 'Singleton', {
+//     code: new lambda.InlineCode(fs.readFileSync('lambda-handler.py', { encoding: 'utf-8' })),
+//     handler: 'index.main',
+//     timeout: 300,
+//     runtime: lambda.Runtime.Python27,
+//   });
 
-  // Run every day at 6PM UTC
-  // See https://docs.aws.amazon.com/lambda/latest/dg/tutorial-scheduled-events-schedule-expressions.html
-  const rule = new events.EventRule(this, 'Rule', {
-    scheduleExpression: 'cron(0 18 ? * MON-FRI *)',
-  });
-  rule.addTarget(lambdaFn);
+//   // Run every day at 6PM UTC
+//   // See https://docs.aws.amazon.com/lambda/latest/dg/tutorial-scheduled-events-schedule-expressions.html
+//   const rule = new events.EventRule(this, 'Rule', {
+//     scheduleExpression: 'cron(0 18 ? * MON-FRI *)',
+//   });
+//   rule.addTarget(lambdaFn);
 
     // ecs cluter
     new ecs.Cluster(this, 'Cluster', {
