@@ -171,7 +171,7 @@ export class RDS extends cdk.Stack {
       machineImage: new EcsOptimizedAmi({
         generation: ec2.AmazonLinuxGeneration.AmazonLinux2,
       }),
-      keyName: "vela.pem",
+      keyName: "vela",
 
       // Or use Amazon ECS-Optimized Amazon Linux 2 AMI
       // machineImage: new EcsOptimizedAmi({ generation: ec2.AmazonLinuxGeneration.AmazonLinux2 }),
