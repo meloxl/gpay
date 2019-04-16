@@ -2,6 +2,10 @@ import ec2 = require('@aws-cdk/aws-ec2');
 import rds = require('@aws-cdk/aws-rds');
 import cdk = require('@aws-cdk/cdk');
 import elasticache = require('@aws-cdk/aws-elasticache');
+import ecs = require("@aws-cdk/aws-ecs");
+import autoscaling = require("@aws-cdk/aws-autoscaling");
+import { EcsOptimizedAmi } from '@aws-cdk/aws-ecs';
+import cloudwatch = require("@aws-cdk/aws-cloudwatch");
 
 import events = require('@aws-cdk/aws-events');
 import lambda = require('@aws-cdk/aws-lambda');
@@ -155,6 +159,45 @@ export class RDS extends cdk.Stack {
   });
   rule.addTarget(lambdaFn);
 
+    // ecs cluter
+    new ecs.Cluster(this, 'Cluster', {
+      vpc: vpc
+    });
+
+    // Or add customized capacity. Be sure to start the Amazon ECS-optimized AMI.
+    const autoScalingGroup = new autoscaling.AutoScalingGroup(this, 'ASG', {
+      vpc,
+      instanceType: new ec2.InstanceType('t2.small'),
+      machineImage: new EcsOptimizedAmi({
+        generation: ec2.AmazonLinuxGeneration.AmazonLinux2,
+      }),
+      keyName: "vela.pem",
+
+      // Or use Amazon ECS-Optimized Amazon Linux 2 AMI
+      // machineImage: new EcsOptimizedAmi({ generation: ec2.AmazonLinuxGeneration.AmazonLinux2 }),
+      desiredCapacity: 1,
+      minCapacity: 1,
+      maxCapacity: 2,
+      // ... other options here ...
+    });
+
+    const workerUtilizationMetric = new cloudwatch.Metric({
+      namespace: 'MyService',
+      metricName: 'WorkerUtilization'
+    });
+
+    // Step scaling
+    autoScalingGroup.scaleOnMetric('ScaleToCPU',{
+      metric: workerUtilizationMetric,
+      scalingSteps: [
+        { upper: 10, change: -1 },
+        { lower: 50, change: +1 },
+        { lower: 70, change: +3 },
+      ],
+      // Change this to AdjustmentType.PercentChangeInCapacity to interpret the
+      // 'change' numbers before as percentages instead of capacity counts.
+      adjustmentType: autoscaling.AdjustmentType.ChangeInCapacity,
+    });
 
 
   }
