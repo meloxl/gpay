@@ -1,0 +1,60 @@
+# 生成各个功能(api/woker)对应的cloudformation 文件
+
+version: 0.2
+
+phases:
+  install:
+    commands:
+      # Install CDK & jq, upgrade npm
+      - apt-get update
+      - apt-get install -y jq
+      - npm install -g npm@6.8.0
+      - npm install -g aws-cdk
+      - pip install awscli --upgrade --user
+
+
+  pre_build:
+    commands:
+      # Set up environment variables like image tag and repo
+      - export IMAGE_TAG=build-`echo $CODEBUILD_BUILD_ID | awk -F":" '{print $2}'`
+      - AWS_ACCOUNT_ID=`echo $CODEBUILD_BUILD_ARN | awk -F":" '{print $5}'`
+      - ECR_REPO=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ECR_REPOSITORY_NAME
+      - $(aws ecr get-login --no-include-email)
+      # VPC
+      - export VPC_ID="$(aws ec2 describe-vpcs --region us-east-1 --query 'Vpcs[?Tags[?Key==`Name`&&starts_with(Value,`'${INFRA_CFN_STACK_NAME}'`)]].{VpcId:VpcId}' --output text)"
+      - echo "vpc id is:" ${VPC_ID}
+      # lower
+      - export INFRA_CFN_STACK_NAME_LOWER=$(echo "$INFRA_CFN_STACK_NAME" | awk '{print tolower($0)}')
+      - echo "INFRA_CFN_STACK_NAME_LOWER is:" ${INFRA_CFN_STACK_NAME_LOWER}
+      # RDS
+      - export RDS_CONF="$(aws rds describe-db-clusters --query 'DBClusters[?starts_with(DBClusterIdentifier, `'${INFRA_CFN_STACK_NAME_LOWER}'`)].{DatabaseName:DatabaseName,Endpoint:Endpoint,MasterUsername:MasterUsername,Port:Port}' --output text)"
+      - echo "rds conf is :" ${RDS_CONF}
+      # redis
+      - REDIS_REPLICATION_CONF="$(aws elasticache describe-replication-groups --query 'ReplicationGroups[?ReplicationGroupId==`'${INFRA_CFN_STACK_NAME_LOWER}'`].{PrimaryEndpointAddr:NodeGroups[0].PrimaryEndpoint.Address, PrimaryEndpointPort:NodeGroups[0].PrimaryEndpoint.Port}' --output text)"
+      - echo "redis replication groups config is:" ${REDIS_REPLICATION_CONF}
+      - |
+        if test -n "${REDIS_REPLICATION_CONF}"; then
+          export REDIS_CONF=${REDIS_REPLICATION_CONF}
+        else
+          export REDIS_CONF="$(aws elasticache describe-cache-clusters --show-cache-node-info --query 'CacheClusters[?Engine==`redis` && starts_with(CacheClusterId, `'${INFRA_CFN_STACK_NAME_LOWER}'`)].{EndpointAddr:CacheNodes[0].Endpoint.Address,EndpointPort:CacheNodes[0].Endpoint.Port}' --output text)"
+        fi
+      - echo "redis conf is :" ${REDIS_CONF}
+
+  build:
+    commands:
+      # Synthesize CloudFormation templates
+      - cd $CODEBUILD_SRC_DIR/app-cfn
+      - npm ci
+      - npm run build
+      - cdk synth -o build --app 'node $APP_NAME-cfn.js'
+      # Build Docker image
+      - docker pull $ECR_REPO:latest
+      - docker tag $ECR_REPO:latest $ECR_REPO:$IMAGE_TAG
+      - docker push $ECR_REPO:$IMAGE_TAG
+      - echo "{\"Image\":\"$ECR_REPO:$IMAGE_TAG\"}" > build/imageDetail.json
+      - cat build/imageDetail.json
+
+artifacts:
+  files:
+    - app-cfn/build/*
+  discard-paths: yes

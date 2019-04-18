@@ -1,5 +1,6 @@
 import cdk = require('@aws-cdk/cdk');
 import { GpayCfnPipeline } from './pipeline';
+import { StgPipeline } from './main-pipeline';
 
 
 export class GpayStack extends cdk.Stack {
@@ -12,6 +13,21 @@ export class GpayStack extends cdk.Stack {
       stackName: 'Infra',
       templateName: 'Infra',
       directory: 'infra/cdk'
+    });
+
+    // backend
+    new StgPipeline(this, 'columba-backend-stg', {
+      appName: 'columba-backend',
+      ecrRepositoryName: 'columba-web',
+      codeRepositoryName: 'columba-infra-cdk',
+      codeRepositoryBranch: 'master',
+      stage: 'stg',
+      infraCfnStackName: 'ColumbaInfraStg',
+      domain: "l1181.com",
+      ecsClusterName: 'columba-stg',
+      ecsServiceCpu: '256',
+      ecsServiceMemory: '512',
+      webRoot: '/var/www/html/backend/web',
     });
   }
 }

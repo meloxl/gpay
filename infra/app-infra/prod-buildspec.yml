@@ -1,0 +1,102 @@
+# 生成各个功能(api/woker)对应的cloudformation 文件
+
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - apt-get update
+      - apt-get install -y jq
+      - pip install awscli --upgrade --user
+      - npm install -g npm@6.8.0
+
+  pre_build:
+    commands:
+      - export APP_ENV_NAME=${APP_NAME}'-'${STAGE}
+      - echo ${APP_ENV_NAME}
+      - SERVICE="$(aws ecs describe-services --cluster ${ECS_CLUSTER_NAME} --service  ${APP_ENV_NAME} --query 'services[?status==`ACTIVE` && serviceName==`'${APP_ENV_NAME}'`].{serviceName:serviceName}' --output text)"
+      - |
+        echo "Get Service: ${SERVICE}"
+      - APPLICATION="$(aws deploy batch-get-applications --application-names ${APP_ENV_NAME} --query 'applicationsInfo[*].applicationName' --output text)"
+      - |
+        echo "Get Application: ${APPLICATION}"
+      - |
+        if test -n "${APPLICATION}"; then
+          DEPLOYMENT_GROUP="$(aws deploy batch-get-deployment-groups --application-name ${APP_ENV_NAME} --deployment-group-names ${APP_ENV_NAME} --query 'deploymentGroupsInfo[*].deploymentGroupName' --output text)"
+        else
+          DEPLOYMENT_GROUP=""
+          echo deployment group not exist
+        fi
+      - |
+        echo "Get Deployment Group: ${DEPLOYMENT_GROUP}"
+      # lower
+      - export INFRA_CFN_STACK_NAME_LOWER=$(echo "$INFRA_CFN_STACK_NAME" | awk '{print tolower($0)}')
+      - echo "INFRA_CFN_STACK_NAME_LOWER is:" ${INFRA_CFN_STACK_NAME_LOWER}
+      # RDS
+      - export RDS_CONF="$(aws rds describe-db-clusters --query 'DBClusters[?starts_with(DBClusterIdentifier, `'${INFRA_CFN_STACK_NAME_LOWER}'`)].{DatabaseName:DatabaseName,Endpoint:Endpoint,MasterUsername:MasterUsername,Port:Port}' --output text)"
+      - echo "rds conf is :" ${RDS_CONF}
+      # redis
+      - REDIS_REPLICATION_CONF="$(aws elasticache describe-replication-groups --query 'ReplicationGroups[?ReplicationGroupId==`'${INFRA_CFN_STACK_NAME_LOWER}'`].{PrimaryEndpointAddr:NodeGroups[0].PrimaryEndpoint.Address, PrimaryEndpointPort:NodeGroups[0].PrimaryEndpoint.Port}' --output text)"
+      - echo "redis replication groups config is:" ${REDIS_REPLICATION_CONF}
+      - |
+        if test -n "${REDIS_REPLICATION_CONF}"; then
+          export REDIS_CONF=${REDIS_REPLICATION_CONF}
+        else
+          export REDIS_CONF="$(aws elasticache describe-cache-clusters --show-cache-node-info --query 'CacheClusters[?Engine==`redis` && starts_with(CacheClusterId, `'${INFRA_CFN_STACK_NAME_LOWER}'`)].{EndpointAddr:CacheNodes[0].Endpoint.Address,EndpointPort:CacheNodes[0].Endpoint.Port}' --output text)"
+        fi
+      - echo "redis conf is :" ${REDIS_CONF}
+      - export TASK_DEFINITION_ARN="$(aws ecs list-task-definitions --family-prefix ${APP_ENV_NAME} --status ACTIVE --sort DESC --max-items 1 --output text | grep TASKDEFINITIONARNS)"
+      - echo "TASK_DEFINITION_ARN is :" ${TASK_DEFINITION_ARN}
+
+  build:
+    commands:
+      # deploy pre-traffic hook
+      - cd $CODEBUILD_SRC_DIR/lib/blue-green-setup/hooks
+      - npm install
+      - aws cloudformation package --template-file template.yaml --s3-bucket "bg-hooks-"$APP_ENV_NAME --output-template-file packaged-template.yaml
+      - aws cloudformation deploy --template-file packaged-template.yaml --stack-name $APP_ENV_NAME"-hooks-prod" --capabilities CAPABILITY_IAM --parameter-overrides Domain=$DOMAIN
+      # Generate files
+      - cd $CODEBUILD_SRC_DIR/lib/blue-green-setup
+      - mkdir build
+      - export AWS_REGION=$AWS_DEFAULT_REGION
+      - npm ci
+      - npm install aws-sdk@2.259.1
+      - IMAGE=`jq -r '.Image' <$CODEBUILD_SRC_DIR_CfnBuildOutput/imageDetail.json`
+      - node produce-config.js -g prod -h $APP_ENV_NAME"-hooks-prod" -a $APP_ENV_NAME -i $IMAGE -p $APP_ENV_NAME -n $INFRA_CFN_STACK_NAME -r "$RDS_CONF" -e "$REDIS_CONF" -c "$ECS_CLUSTER_NAME" -u "$ECS_SERVICE_CPU" -m "$ECS_SERVICE_MEMORY" -w "$WEB_ROOT" -t "$TASK_DEFINITION_ARN"
+      # Create ECS resources
+      - echo $CODEBUILD_WEBHOOK_ACTOR_ACCOUNT_ID
+      - cat build/task-definition-prod.json
+      - aws ecs register-task-definition --cli-input-json file://build/task-definition-prod.json
+      - cat build/service-definition-prod.json
+      - |
+        if test -n "${SERVICE}"; then
+          echo ecs service existed
+        else
+          echo ecs service not exist
+          aws ecs create-service --service-name $APP_ENV_NAME --cli-input-json file://build/service-definition-prod.json
+        fi
+      # Create CodeDeploy resources
+      - |
+        if test -n "${APPLICATION}"; then
+          echo application existed
+        else
+          echo application not exist
+          aws deploy create-application --application-name $APP_ENV_NAME --compute-platform ECS
+        fi
+      - |
+        if test -n "${DEPLOYMENT_GROUP}"; then
+          echo deployment group existed
+        else
+          echo deployment group not exist
+          aws deploy create-deployment-group --deployment-group-name $APP_ENV_NAME --cli-input-json file://build/deployment-group-prod.json
+        fi
+      # Start deployment
+      - cat build/task-definition-prod.json
+      - cat build/appspec-prod.json
+      - aws ecs deploy --service $APP_ENV_NAME --codedeploy-application $APP_ENV_NAME --codedeploy-deployment-group $APP_ENV_NAME --task-definition build/task-definition-prod.json --codedeploy-appspec build/appspec-prod.json --cluster $ECS_CLUSTER_NAME
+      # scaling
+      - aws application-autoscaling register-scalable-target --service-namespace ecs --scalable-dimension ecs:service:DesiredCount --resource-id "service/"${ECS_CLUSTER_NAME}"/"${APP_ENV_NAME} --min-capacity 1 --max-capacity 100
+      - aws application-autoscaling put-scaling-policy --service-namespace ecs --scalable-dimension ecs:service:DesiredCount --resource-id "service/"${ECS_CLUSTER_NAME}"/"${APP_ENV_NAME} --policy-name "cpu75-target-tracking-scaling-policy-"${APP_ENV_NAME} --policy-type TargetTrackingScaling --target-tracking-scaling-policy-configuration file://scaling-policy-cpu.json
+      - aws application-autoscaling put-scaling-policy --service-namespace ecs --scalable-dimension ecs:service:DesiredCount --resource-id "service/"${ECS_CLUSTER_NAME}"/"${APP_ENV_NAME} --policy-name "memory75-target-tracking-scaling-policy-"${APP_ENV_NAME} --policy-type TargetTrackingScaling --target-tracking-scaling-policy-configuration file://scaling-policy-memory.json
+      # backup
+      - aws s3 sync build/ s3://blue-green-template-file/$APP_ENV_NAME
