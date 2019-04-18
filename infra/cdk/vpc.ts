@@ -189,6 +189,9 @@ export class RDS extends cdk.Stack {
     });
 
     cluster.addAutoScalingGroup(autoScalingGroup);
+    autoScalingGroup.addSecurityGroup(exssh_sg);
+    autoScalingGroup.addSecurityGroup(exelb_sg);
+    autoScalingGroup.addSecurityGroup(inelb_sg);
 
 
     const workerUtilizationMetric = new cloudwatch.Metric({
