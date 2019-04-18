@@ -16,15 +16,15 @@ export class GpayStack extends cdk.Stack {
     });
 
     // backend
-    new StgPipeline(this, 'columba-backend-stg', {
-      appName: 'columba-backend',
+    new StgPipeline(this, 'gpay-backend-stg', {
+      appName: 'gpay-backend',
       ecrRepositoryName: 'columba-web',
       codeRepositoryName: 'columba-infra-cdk',
       codeRepositoryBranch: 'master',
       stage: 'stg',
-      infraCfnStackName: 'ColumbaInfraStg',
+      infraCfnStackName: 'GpayInfraRDS',
       domain: "l1181.com",
-      ecsClusterName: 'columba-stg',
+      ecsClusterName: 'gpay-stg',
       ecsServiceCpu: '256',
       ecsServiceMemory: '512',
       webRoot: '/var/www/html/backend/web',
