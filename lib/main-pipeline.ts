@@ -54,9 +54,9 @@ export class StgPipeline extends cdk.Construct {
 
         // Code github
         const githubAccessToken = new cdk.SecretParameter(this, 'GitHubToken', { ssmParameter: 'GitHubToken' });
-        const sourceCodeStage = pipeline.addStage({
-            name: 'CodeCommit',
-          });
+        // const sourceCodeStage = pipeline.addStage({
+        //     name: 'Source',
+        //   });
         const sourceCodeAction = new codepipeline.GitHubSourceAction({
             actionName: 'GitHub_Source',
             owner: 'meloxl',
@@ -65,7 +65,7 @@ export class StgPipeline extends cdk.Construct {
             oauthToken: githubAccessToken.value,
             outputArtifactName: 'SourceCodeOutput', // this will be the name of the output artifact in the Pipeline
           });
-          sourceCodeStage.addAction(sourceCodeAction);
+          sourceStage.addAction(sourceCodeAction);
 
         // const codeCommitRep = codecommit.Repository.import(this, 'CodeCommit', {
         //     repositoryName: props.codeRepositoryName
