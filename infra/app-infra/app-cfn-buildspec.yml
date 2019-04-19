@@ -30,7 +30,7 @@ phases:
       - export RDS_CONF="$(aws rds describe-db-clusters --query 'DBClusters[?starts_with(DBClusterIdentifier, `'${INFRA_CFN_STACK_NAME_LOWER}'`)].{DatabaseName:DatabaseName,Endpoint:Endpoint,MasterUsername:MasterUsername,Port:Port}' --output text)"
       - echo "rds conf is :" ${RDS_CONF}
       # redis
-      -export REDIS=gpayredis
+      - export REDIS=gpayredis
       - REDIS_REPLICATION_CONF="$(aws elasticache describe-replication-groups --query 'ReplicationGroups[?ReplicationGroupId==`'${REDIS}'`].{PrimaryEndpointAddr:NodeGroups[0].PrimaryEndpoint.Address, PrimaryEndpointPort:NodeGroups[0].PrimaryEndpoint.Port}' --output text)"
       - echo "redis replication groups config is:" ${REDIS_REPLICATION_CONF}
       - |
