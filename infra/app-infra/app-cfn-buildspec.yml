@@ -37,7 +37,7 @@ phases:
         if test -n "${REDIS_REPLICATION_CONF}"; then
           export REDIS_CONF=${REDIS_REPLICATION_CONF}
         else
-          export REDIS_CONF="$(aws elasticache describe-cache-clusters --show-cache-node-info --query 'CacheClusters[?Engine==`redis` && starts_with(CacheClusterId, `'${INFRA_CFN_STACK_NAME_LOWER}'`)].{EndpointAddr:CacheNodes[0].Endpoint.Address,EndpointPort:CacheNodes[0].Endpoint.Port}' --output text)"
+          export REDIS_CONF="$(aws elasticache describe-cache-clusters --show-cache-node-info --query 'CacheClusters[?Engine==`redis` && starts_with(CacheClusterId, `'${REDIS}'`)].{EndpointAddr:CacheNodes[0].Endpoint.Address,EndpointPort:CacheNodes[0].Endpoint.Port}' --output text)"
         fi
       - echo "redis conf is :" ${REDIS_CONF}
 
