@@ -36,6 +36,7 @@ phases:
       - export RDS_CONF="$(aws rds describe-db-clusters --query 'DBClusters[?starts_with(DBClusterIdentifier, `'${INFRA_CFN_STACK_NAME_LOWER}'`)].{DatabaseName:DatabaseName,Endpoint:Endpoint,MasterUsername:MasterUsername,Port:Port}' --output text)"
       - echo "rds conf is :" ${RDS_CONF}
       # redis
+      - export REDIS=gpayredis
       - REDIS_REPLICATION_CONF="$(aws elasticache describe-replication-groups --query 'ReplicationGroups[?ReplicationGroupId==`'${INFRA_CFN_STACK_NAME_LOWER}'`].{PrimaryEndpointAddr:NodeGroups[0].PrimaryEndpoint.Address, PrimaryEndpointPort:NodeGroups[0].PrimaryEndpoint.Port}' --output text)"
       - echo "redis replication groups config is:" ${REDIS_REPLICATION_CONF}
       - |
@@ -51,12 +52,12 @@ phases:
   build:
     commands:
       # deploy pre-traffic hook
-      - cd $CODEBUILD_SRC_DIR/lib/blue-green-setup/hooks
+      - cd $CODEBUILD_SRC_DIR/infra/blue-green-setup/hooks
       - npm install
       - aws cloudformation package --template-file template.yaml --s3-bucket "bg-hooks-"$APP_ENV_NAME --output-template-file packaged-template.yaml
       - aws cloudformation deploy --template-file packaged-template.yaml --stack-name $APP_ENV_NAME"-hooks-prod" --capabilities CAPABILITY_IAM --parameter-overrides Domain=$DOMAIN
       # Generate files
-      - cd $CODEBUILD_SRC_DIR/lib/blue-green-setup
+      - cd $CODEBUILD_SRC_DIR/infra/blue-green-setup
       - mkdir build
       - export AWS_REGION=$AWS_DEFAULT_REGION
       - npm ci

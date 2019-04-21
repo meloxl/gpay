@@ -1,0 +1,45 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Validation hooks
+
+Parameters:
+  Domain:
+    Type: String
+    Default: 'example.com'
+
+  TestPort:
+    Type: Number
+    Default: 9002
+
+Resources:
+  PreTrafficHook:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Join
+        - '-'
+        - - !Ref "AWS::StackName"
+          - 'pre-traffic-hook'
+      CodeUri: ./
+      Timeout: 300
+      Handler: pre-traffic-hook.handler
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+          - Effect: "Allow"
+            Action:
+              - "codedeploy:PutLifecycleEventHookExecutionStatus"
+            Resource:
+              !Sub 'arn:${AWS::Partition}:codedeploy:${AWS::Region}:${AWS::AccountId}:deploymentgroup:*'
+      Runtime: nodejs8.10
+      DeploymentPreference:
+        Enabled: false
+        Role: ""
+      Environment:
+        Variables:
+          TargetUrl: !Join # Example: https://api.il1edu.com:9002/api/trivia/all
+            - ''
+            - - 'https://'
+              - !Ref Domain
+              - ':'
+              - !Ref TestPort
+              - '/api/trivia/all'
