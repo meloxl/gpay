@@ -102,7 +102,10 @@ export class StgPipeline extends cdk.Construct {
                     },
                     'INFRA_CFN_STACK_NAME': {
                         value: props.infraCfnStackName
-                    }
+                    },
+                    'ALB_SG': {
+                        value: props.albSG
+                    },
                 },
                 privileged: true
             },
@@ -199,7 +202,7 @@ export class StgPipeline extends cdk.Construct {
 
         // const stgBGbuildProject = new codebuild.Project(this, 'StgBlueGreenDeploy', {
             // source: new codebuild.CodeCommitSource({repository: codeCommitRep}),
-            buildSpec: 'lib/app-infra/prod-buildspec.yml',
+            buildSpec: 'infra/app-infra/prod-buildspec.yml',
             environment: {
                 buildImage: codebuild.LinuxBuildImage.UBUNTU_14_04_NODEJS_10_1_0,
                 environmentVariables: {
