@@ -226,6 +226,7 @@ const app = new cdk.App();
 new RDS(app, 'GpayInfraRDS', {
   cacheNodeType: "cache.t2.micro",
   engine: "redis",
+  elbsg: "gpay-alb-stg",
 });
 
 app.run();
