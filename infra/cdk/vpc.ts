@@ -14,6 +14,7 @@ import cloudwatch = require("@aws-cdk/aws-cloudwatch");
 interface GPAYStackProps extends cdk.StackProps {
   cacheNodeType: string;
   engine: string;
+  elbsg?: string;
 }
 
 export class RDS extends cdk.Stack {
@@ -57,11 +58,15 @@ export class RDS extends cdk.Stack {
     inssh_sg.addIngressRule(exssh_sg, new ec2.TcpPort(22), 'allow ssh access from bastion',true);
 
     const exelb_sg = new ec2.SecurityGroup(this, 'gpay-external-elb', {
+      groupName: props.elbsg,     //'columba-alb-stg',
       vpc,
       description: 'Allows external ELB traffic',
       allowAllOutbound: true   // Can be set to false
     });
     exelb_sg.addIngressRule(new ec2.AnyIPv4(), new ec2.TcpPort(80), 'allows external ELB traffic');
+    exelb_sg.addIngressRule(new ec2.AnyIPv4(), new ec2.TcpPort(9002), 'allows external ELB traffic');
+    exelb_sg.addIngressRule(new ec2.AnyIPv4(), new ec2.TcpPort(443), 'allows external ELB traffic');
+    exelb_sg.addIngressRule(exelb_sg, new ec2.AllTraffic() , 'all port allow external ELB traffic');
 
     const inelb_sg = new ec2.SecurityGroup(this, 'gpay-internal-elb', {
       vpc,

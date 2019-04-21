@@ -28,7 +28,7 @@ export class GpayStack extends cdk.Stack {
       ecsServiceCpu: '256',
       ecsServiceMemory: '512',
       webRoot: '/var/www/html/backend/web',
-      albSG: 'columba-alb-stg',
+      albSG: 'gpay-alb-stg',
       prodEcsClusterName: 'gpay-prod'
     });
   }
