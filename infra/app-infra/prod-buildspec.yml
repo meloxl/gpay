@@ -14,6 +14,7 @@ phases:
     commands:
       - export APP_ENV_NAME=${APP_NAME}'-'${STAGE}
       - echo ${APP_ENV_NAME}
+      - export ECS_CLUSTER_NAME="GpayInfraRDS-ClusterEB0386A7-CH4MZ2YQFP0N"
       - SERVICE="$(aws ecs describe-services --cluster ${ECS_CLUSTER_NAME} --service  ${APP_ENV_NAME} --query 'services[?status==`ACTIVE` && serviceName==`'${APP_ENV_NAME}'`].{serviceName:serviceName}' --output text)"
       - |
         echo "Get Service: ${SERVICE}"
