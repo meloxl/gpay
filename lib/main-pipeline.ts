@@ -20,6 +20,8 @@ export interface CommonPipeline{
     ecsServiceCpu: string,
     ecsServiceMemory: string,
     webRoot?: string,
+    albSG: string,
+    prodEcsClusterName: string,
 }
 
 export class StgPipeline extends cdk.Construct {
