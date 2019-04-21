@@ -23,6 +23,9 @@ phases:
       # VPC
       - export VPC_ID="$(aws ec2 describe-vpcs --region us-east-1 --query 'Vpcs[?Tags[?Key==`Name`&&starts_with(Value,`'${INFRA_CFN_STACK_NAME}'`)]].{VpcId:VpcId}' --output text)"
       - echo "vpc id is:" ${VPC_ID}
+      # scurity group
+      - export SG="$(aws ec2 describe-security-groups  --region us-east-1 --query 'SecurityGroups[?starts_with(GroupName,`'${ALB_SG}'`)].{ID:GroupId}'  --output text)"
+      - echo "scurity group id is:" ${SG}      
       # lower
       - export INFRA_CFN_STACK_NAME_LOWER=$(echo "$INFRA_CFN_STACK_NAME" | awk '{print tolower($0)}')
       - echo "INFRA_CFN_STACK_NAME_LOWER is:" ${INFRA_CFN_STACK_NAME_LOWER}

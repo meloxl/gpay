@@ -10,8 +10,8 @@ new BaseStack(app, 'gpay-backend-stg', {
     imagePort: 80
 });
 
-// new BaseStack(app, 'columba-backend-prod', {
-//     appName: 'columba-backend',
+// new BaseStack(app, 'gpay-backend-prod', {
+//     appName: 'gpay-backend',
 //     stage: 'prod',
 //     imagePort: 80
 // });
